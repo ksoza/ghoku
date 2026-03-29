@@ -555,7 +555,7 @@ export async function runGhostfaceAgent(
 
     return {
       response: responseText,
-      toolsUsed: [...new Set(toolsUsed)],
+      toolsUsed: Array.from(new Set(toolsUsed)),
       plan: currentPlan,
       memory,
       messages: [...history, { role: 'user', content: userMessage }, { role: 'assistant', content: responseText }],
@@ -565,7 +565,7 @@ export async function runGhostfaceAgent(
 
   return {
     response: 'Reached maximum iterations. Here\'s what I found so far.',
-    toolsUsed: [...new Set(toolsUsed)],
+    toolsUsed: Array.from(new Set(toolsUsed)),
     plan: currentPlan,
     memory,
     messages: history,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import GhOSTfaceBrain from '@/components/ghostface/GhOSTfaceBrain';
+import { GhOSTfaceBrain } from '@/components/ghostface/GhOSTfaceBrain';
 
 export default function Home() {
   const [launched, setLaunched] = useState(false);

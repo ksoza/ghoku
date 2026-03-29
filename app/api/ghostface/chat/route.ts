@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       const result = await runGhostfaceAgent(
         message,
         agentHistory,
-        { repo, memory, code: context },
+        { repo, code: context },
         agentMemory,
       );
 
