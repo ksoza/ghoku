@@ -12,3 +12,12 @@ export type { SearchResult } from './web-search';
 
 export { analyzeCode } from './code-analysis';
 export type { CodeAnalysis } from './code-analysis';
+
+export {
+  searchYouTubeVideos,
+  getTrendingVideos,
+  getChannelStats,
+  getVideoDetails,
+  getVideoComments,
+} from './youtube-tools';
+export type { YouTubeVideo, YouTubeChannel } from './youtube-tools';

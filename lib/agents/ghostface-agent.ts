@@ -11,6 +11,11 @@ import {
   getHuggingFaceModelCard,
   webSearch,
   analyzeCode,
+  searchYouTubeVideos,
+  getTrendingVideos,
+  getChannelStats,
+  getVideoDetails,
+  getVideoComments,
 } from './tools';
 import type {
   AgentMessage,
@@ -167,6 +172,81 @@ const TOOL_DEFINITIONS: ToolDefinition[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'search_youtube',
+      description: 'Search YouTube videos by query. Returns video details, view counts, tags, and engagement stats. Great for researching what content performs well.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Search query' },
+          maxResults: { type: 'number', description: 'Max results (default 10)' },
+          order: { type: 'string', enum: ['relevance', 'date', 'viewCount', 'rating'], description: 'Sort order (default relevance)' },
+          videoDuration: { type: 'string', enum: ['short', 'medium', 'long', 'any'], description: 'Video length filter (default short for Shorts)' },
+        },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_trending_videos',
+      description: 'Get currently trending YouTube videos by region and category. Use to spot viral content patterns.',
+      parameters: {
+        type: 'object',
+        properties: {
+          regionCode: { type: 'string', description: 'ISO region code e.g. US, GB, IN (default US)' },
+          categoryId: { type: 'string', description: 'YouTube category ID (leave empty for all)' },
+          maxResults: { type: 'number', description: 'Max results (default 10)' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_channel_stats',
+      description: 'Get detailed stats for a YouTube channel: subscribers, total views, video count.',
+      parameters: {
+        type: 'object',
+        properties: {
+          channelId: { type: 'string', description: 'YouTube channel ID (UCxxxx) or handle (@username)' },
+        },
+        required: ['channelId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_video_details',
+      description: 'Get detailed info, tags, description, and engagement for a specific YouTube video.',
+      parameters: {
+        type: 'object',
+        properties: {
+          videoId: { type: 'string', description: 'YouTube video ID (e.g. dQw4w9WgXcQ)' },
+        },
+        required: ['videoId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_video_comments',
+      description: 'Get top comments on a YouTube video. Great for understanding audience sentiment.',
+      parameters: {
+        type: 'object',
+        properties: {
+          videoId: { type: 'string', description: 'YouTube video ID' },
+          maxResults: { type: 'number', description: 'Max comments (default 20)' },
+        },
+        required: ['videoId'],
+      },
+    },
+  },
 ];
 
 // ── Tool Executor ───────────────────────────────────────────────
@@ -244,6 +324,30 @@ async function executeTool(
       }
       case 'reflect': {
         return { result: JSON.stringify({ reflection: true, ...args }) };
+      }
+      case 'search_youtube': {
+        const videos = await searchYouTubeVideos(args.query, {
+          maxResults: args.maxResults,
+          order: args.order,
+          videoDuration: args.videoDuration,
+        });
+        return { result: JSON.stringify(videos, null, 2) };
+      }
+      case 'get_trending_videos': {
+        const trending = await getTrendingVideos(args.regionCode, args.categoryId, args.maxResults);
+        return { result: JSON.stringify(trending, null, 2) };
+      }
+      case 'get_channel_stats': {
+        const stats = await getChannelStats(args.channelId);
+        return { result: JSON.stringify(stats, null, 2) };
+      }
+      case 'get_video_details': {
+        const details = await getVideoDetails(args.videoId);
+        return { result: JSON.stringify(details, null, 2) };
+      }
+      case 'get_video_comments': {
+        const comments = await getVideoComments(args.videoId, args.maxResults);
+        return { result: JSON.stringify(comments, null, 2) };
       }
       default:
         return { result: JSON.stringify({ error: `Unknown tool: ${name}` }) };
@@ -395,7 +499,7 @@ export async function runGhostfaceAgent(
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 4096,
         system: systemPrompt,
         messages: anthropicMessages,
